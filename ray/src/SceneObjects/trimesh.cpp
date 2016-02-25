@@ -131,7 +131,25 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 
         i.setObject(this);
         i.setT(t);
-        i.setN(n);
+
+        if(parent -> normals.empty()){
+            i.setN(n);
+        }else{
+            Vec3d n_a = parent->normals[ids[0]];
+            Vec3d n_b = parent->normals[ids[1]];
+            Vec3d n_c = parent->normals[ids[2]];
+            i.setN(alpha * n_a + beta * n_b + gamma * n_c);
+        }
+
+        if(parent -> materials.empty()){
+            i.setMaterial(i.getMaterial());
+        }else{
+            Material material;
+            material += (alpha * (*(parent->materials[ids[0]])));
+            material += (beta * (*(parent->materials[ids[1]])));
+            material += (gamma * (*(parent->materials[ids[2]])));
+            i.setMaterial(material);
+        }
 
         i.setBary(alpha, beta, gamma);
 

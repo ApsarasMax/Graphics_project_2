@@ -80,8 +80,61 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-	  const Material& m = i.getMaterial();
-	  colorC = m.shade(scene, r, i);
+		const Material& m = i.getMaterial();
+	  	colorC = m.shade(scene, r, i);
+
+	  	if(depth <= 0){
+	  		return colorC;
+	  	}
+
+	  	//reflection
+	  	Vec3d N = i.N;
+	    Vec3d L = -r.d; //opposite of ray direction
+	    L.normalize();
+
+	    //if(!(m.kr(i)[0]==0 && m.kr(i)[1]==0 && m.kr(i)[2]==0)){
+	    Vec3d dirReflect = 2*max((L*N), 0.0)*N-L;
+	    dirReflect.normalize();
+
+	    ray reflect(r.at(i.t), dirReflect, ray :: REFLECTION);
+
+	    colorC += m.kr(i) % traceRay(reflect, depth-1);
+		//}
+
+		//refraction
+		double yita_i=1.0;// = m.index(i); //object = i
+	    double yita_t=1.0;// = 1.0; //air =t
+	    double yita=1.0;// = yita_i/yita_t;
+		double cosine_i = N * L;
+		double flag = 1;
+	    if(cosine_i>0){
+	    	yita_i = 1.0; //air = i
+		    yita_t = m.index(i); //object =t
+		    yita = yita_i/yita_t;
+		    
+	    }else{
+	    	yita_i = m.index(i); //object = i
+		    yita_t = 1.0; //air =t
+		    yita = yita_i/yita_t;
+		    colorC -= m.shade(scene, r, i);
+		    
+		    flag = -1;
+
+		    double sine_i = sqrt(1 - cosine_i*cosine_i);
+		    double sine_t = yita * sine_i;
+		    if(sine_t>1){
+		    	return colorC;
+		    }
+	    }
+
+	    double cosine_t = sqrt(1-yita*yita*(1-cosine_i*cosine_i));
+
+	    Vec3d dirRefract = (yita*cosine_i - cosine_t * flag) * N  - yita * L;
+	    dirRefract.normalize();
+	    ray refract(r.at(i.t), dirRefract, ray :: REFRACTION);
+	    colorC += m.kt(i) % traceRay(refract, depth-1);
+
+	  
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case

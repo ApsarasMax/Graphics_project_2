@@ -30,7 +30,7 @@ Vec3d Material::shade(Scene *scene, const ray& r, const isect& i) const
     Vec3d L = pLight->getDirection(r.at(i.t));
     L.normalize();
 
-    Vec3d V = r.getDirection();
+    Vec3d V = r.d;
     V.normalize();
 
     Vec3d R = 2*max((L*N), 0.0)*N-L;
