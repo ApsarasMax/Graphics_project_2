@@ -44,6 +44,7 @@ public:
 	Fl_Slider*			m_treeDepthSlider;
 	Fl_Slider*			m_leafSizeSlider;
 	Fl_Slider*			m_filterSlider;
+	
 
 	Fl_Check_Button*	m_debuggingDisplayCheckButton;
 	Fl_Check_Button*	m_aaCheckButton;
@@ -61,6 +62,19 @@ public:
 	TraceGLWindow*		m_traceGlWindow;
 
 	DebuggingWindow*	m_debuggingWindow;
+
+	//kdtree
+	Fl_Check_Button*	m_kdtreeCheckButton;
+	
+	static int	m_nKdtreeMaxSize; //zyc
+	static int	m_nKdtreeLeafSize;
+
+	static Fl_Slider*			m_kdtreeMaxSizeSlider;
+	static Fl_Slider*			m_kdtreeLeafSizeSlider;
+	//kdtree
+	static bool m_kdtreeInfo;
+	
+	
 
 	// member functions
 	void setRayTracer(RayTracer *tracer);
@@ -99,9 +113,15 @@ private:
 	static void cb_shCheckButton(Fl_Widget* o, void* v);
 	static void cb_bfCheckButton(Fl_Widget* o, void* v);
 
+	//kdtree
+	static void cb_kdtreeCheckButton(Fl_Widget* o, void* v);
+	static void cb_kdtreeMaxSlides(Fl_Widget* o, void* v);
+	static void cb_kdtreeLeafSlides(Fl_Widget* o, void* v);
+	
 	static bool stopTrace;
 	static bool doneTrace;
 	static GraphicalUI* pUI;
+
 };
 
 #endif

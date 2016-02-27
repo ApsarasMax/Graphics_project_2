@@ -20,7 +20,7 @@ class TraceUI {
 public:
 	TraceUI() : m_nDepth(0), m_nSize(512), m_displayDebuggingInfo(false),
                     m_shadows(true), m_smoothshade(true), raytracer(0),
-                    m_nFilterWidth(1)
+                    m_nFilterWidth(1)//, m_kdtreeInfo(true)//, m_nKdtreeMaxSize(0) //kdtree
                     {}
 
 	virtual int	run() = 0;
@@ -41,13 +41,21 @@ public:
 	bool	shadowSw() const { return m_shadows; }
 	bool	smShadSw() const { return m_smoothshade; }
 
+	//kdtree
+	//int	getkdtreeMaxSize() const { return m_nKdtreeMaxSize; }
+
 	static bool m_debug;
+
+	
 
 protected:
 	RayTracer*	raytracer;
 
+	
 	int	m_nSize;	// Size of the traced image
 	int	m_nDepth;	// Max depth of recursion
+	int m_nFilterWidth;  // width of cubemap filter
+	
 
 	// Determines whether or not to show debugging information
 	// for individual rays.  Disabled by default for efficiency
@@ -57,7 +65,11 @@ protected:
 	bool m_smoothshade;  // turn on/off smoothshading?
 	bool		m_usingCubeMap;  // render with cubemap
 	bool		m_gotCubeMap;  // cubemap defined
-	int m_nFilterWidth;  // width of cubemap filter
+	
+
+	
+	
+
 };
 
 #endif

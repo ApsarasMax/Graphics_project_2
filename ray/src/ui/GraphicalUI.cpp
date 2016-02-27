@@ -30,6 +30,13 @@ GraphicalUI* GraphicalUI::pUI = NULL;
 char* GraphicalUI::traceWindowLabel = "Raytraced Image";
 bool TraceUI::m_debug = false;
 
+int	GraphicalUI::m_nKdtreeMaxSize = 5; //zyc
+int	GraphicalUI::m_nKdtreeLeafSize = 10; //zyc
+Fl_Slider*	GraphicalUI::m_kdtreeMaxSizeSlider = nullptr;
+Fl_Slider*	GraphicalUI::m_kdtreeLeafSizeSlider = nullptr;
+bool GraphicalUI::m_kdtreeInfo = true;
+
+
 //------------------------------------- Help Functions --------------------------------------------
 GraphicalUI* GraphicalUI::whoami(Fl_Menu_* o)	// from menu item back to UI itself
 {
@@ -140,6 +147,31 @@ void GraphicalUI::cb_debuggingDisplayCheckButton(Fl_Widget* o, void* v)
 	    pUI->m_debuggingWindow->hide();
 	    pUI->m_debug = false;
 	  }
+}
+
+//kdtree
+void GraphicalUI::cb_kdtreeCheckButton(Fl_Widget* o, void* v)
+{
+	pUI=(GraphicalUI*)(o->user_data());
+	pUI->m_kdtreeInfo = (((Fl_Check_Button*)o)->value() == 1);
+	if (pUI->m_kdtreeInfo){
+		pUI->m_kdtreeMaxSizeSlider->activate();
+		pUI->m_kdtreeLeafSizeSlider->activate();
+	}else{
+		pUI->m_kdtreeMaxSizeSlider->deactivate();
+		pUI->m_kdtreeLeafSizeSlider->deactivate();
+	}
+
+}
+
+void GraphicalUI::cb_kdtreeMaxSlides(Fl_Widget* o, void* v)
+{
+	((GraphicalUI*)(o->user_data()))->m_nKdtreeMaxSize=int( ((Fl_Slider *)o)->value() ) ;
+}
+
+void GraphicalUI::cb_kdtreeLeafSlides(Fl_Widget* o, void* v)
+{
+	((GraphicalUI*)(o->user_data()))->m_nKdtreeLeafSize=int( ((Fl_Slider *)o)->value() ) ;
 }
 
 void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
@@ -303,6 +335,43 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_debuggingDisplayCheckButton->callback(cb_debuggingDisplayCheckButton);
 	m_debuggingDisplayCheckButton->value(m_displayDebuggingInfo);
 
+	// set up kdtree implementation checkbox
+	m_kdtreeCheckButton = new Fl_Check_Button(10, 165, 80, 20, "Kd-Tree");
+	m_kdtreeCheckButton->user_data((void*)(this));
+	m_kdtreeCheckButton->callback(cb_kdtreeCheckButton);
+	m_kdtreeCheckButton->value(m_kdtreeInfo);
+
+	//Fl_Slider*			m_kdtreeMaxSizeSlider = nullptr;//zyc
+
+
+	// install ketree max size slider
+	m_kdtreeMaxSizeSlider = new Fl_Value_Slider(100, 150, 180, 20, "Max size");
+	m_kdtreeMaxSizeSlider->user_data((void*)(this));	// record self to be used by static callback functions
+	m_kdtreeMaxSizeSlider->type(FL_HOR_NICE_SLIDER);
+	m_kdtreeMaxSizeSlider->labelfont(FL_COURIER);
+	m_kdtreeMaxSizeSlider->labelsize(12);
+	m_kdtreeMaxSizeSlider->minimum(1);
+	m_kdtreeMaxSizeSlider->maximum(30);
+	m_kdtreeMaxSizeSlider->step(1);
+	m_kdtreeMaxSizeSlider->value(m_nKdtreeMaxSize);
+	m_kdtreeMaxSizeSlider->align(FL_ALIGN_RIGHT);
+	m_kdtreeMaxSizeSlider->callback(cb_kdtreeMaxSlides);
+
+	//Fl_Slider*			m_kdtreeLeafSizeSlider = nullptr;//zyc
+
+	// install kdtree leaf size slider
+	m_kdtreeLeafSizeSlider = new Fl_Value_Slider(100, 180, 180, 20, "Target Leaf size");
+	m_kdtreeLeafSizeSlider->user_data((void*)(this));	// record self to be used by static callback functions
+	m_kdtreeLeafSizeSlider->type(FL_HOR_NICE_SLIDER);
+	m_kdtreeLeafSizeSlider->labelfont(FL_COURIER);
+	m_kdtreeLeafSizeSlider->labelsize(12);
+	m_kdtreeLeafSizeSlider->minimum(1);
+	m_kdtreeLeafSizeSlider->maximum(100);
+	m_kdtreeLeafSizeSlider->step(1);
+	m_kdtreeLeafSizeSlider->value(m_nKdtreeLeafSize);
+	m_kdtreeLeafSizeSlider->align(FL_ALIGN_RIGHT);
+	m_kdtreeLeafSizeSlider->callback(cb_kdtreeLeafSlides);
+
 	m_mainWindow->callback(cb_exit2);
 	m_mainWindow->when(FL_HIDE);
 	m_mainWindow->end();
@@ -314,6 +383,9 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 
 	// debugging view
 	m_debuggingWindow = new DebuggingWindow();
+
+	
+
 }
 
 #endif
