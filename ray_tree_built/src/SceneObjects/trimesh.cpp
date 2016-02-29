@@ -202,7 +202,6 @@ void Trimesh::generateNormals()
 
 void Trimesh::buildKdTree(){//cindy
     cout<<"kdTreeBuilt"<<endl;
-    cout<<kdTreeBuilt<<endl;
     if(!kdTreeBuilt){
         
         std::vector<Geometry*> objects(faces.size());

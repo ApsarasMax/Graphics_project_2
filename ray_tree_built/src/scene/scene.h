@@ -227,6 +227,7 @@ protected:
 //cindy
  // template <typename Obj>//cindy
   //class KdTree;
+  //int times = 0 ;//zyc
 class KdTree{
     private:
         int currentAxis;
@@ -273,61 +274,87 @@ class KdTree{
           this->currentAxis = currentAxis;
         }
 
-        int getCurrentAxis() {
-          return currentAxis;
-        }
-
+        // int getCurrentAxis() {
+        //   return currentAxis;
+        // }
 
         void addObjects (std::vector<Geometry*> &objects) {
             if (objects.size() < size || depth <= 0) {
               this->objects = objects;
               return;
             }
-            Vec3d min = bbox.getMin();
-            Vec3d max = bbox.getMax();
-            split = (min[currentAxis] + max[currentAxis]) / 2.0;
-            std::vector<Geometry*> vleft;
-            std::vector<Geometry*> vright;
-            bool added = false;
-            int countLeft = 0;
-            for(auto obj: objects){
-                added = false;
-                if (!obj->hasBoundingBoxCapability())
-                  continue;
-                if (obj->getBoundingBox().getMin()[currentAxis] <= split) {
-                    added = true;
-                    vleft.push_back(obj);
-                    countLeft ++;
-                }
-                if (obj->getBoundingBox().getMax()[currentAxis] >= split) {
-                    added = true;
-                    vright.push_back(obj);
-                }
-                // debug: if everything is added
-                assert(added);
 
+            //obtain the split point (in one specified axis)
+            split = 0.0;
+            std::vector<Geometry*>::iterator obj;
+            for( obj = objects.begin(); obj != objects.end(); ++obj ){
+              BoundingBox tmpBox = (*obj) -> ComputeLocalBoundingBox();
+              split += (tmpBox.getMin()[currentAxis] + tmpBox.getMax()[currentAxis]) / 2;
+            }
+            split /= objects.size();
+           
+            //split = (min[currentAxis] + max[currentAxis]) / 2.0;//cindy
+            std::vector<Geometry*> left_objects;
+            std::vector<Geometry*> right_objects;
+            bool added = false;//cindy
+            int countLeft = 0;
+
+
+            for( obj = objects.begin(); obj != objects.end(); ++obj ){
+              BoundingBox tmpBox = (*obj) -> ComputeLocalBoundingBox();
+              if((tmpBox.getMin()[currentAxis] + tmpBox.getMax()[currentAxis]) / 2<=split){
+                left_objects.push_back((*obj));
+                countLeft ++;
+              }else{
+                right_objects.push_back((*obj));
+              }
             }
 
-            // trim tree leaves
-            if (countLeft == 0 || countLeft == objects.size()) {
+            // for(auto obj: objects){//cindy
+            //   times++;
+            //     //added = false;
+            //     if (!obj->hasBoundingBoxCapability()){//mark
+            //       cout<<"mark\n";
+            //       continue;
+            //     }
+            //     if (obj->getBoundingBox().getMin()[currentAxis] <= split) {
+            //         //added = true;
+            //         left_objects.push_back(obj);
+            //         countLeft ++;
+            //     }
+            //     if (obj->getBoundingBox().getMax()[currentAxis] >= split) {
+            //         //added = true;
+            //         right_objects.push_back(obj);
+            //     }
+            //     // debug: if everything is added
+            //     //assert(added);//cindy
+            // }
+
+            //trim tree leaves
+            if (countLeft == 0 || countLeft == objects.size()) {//mark
+              cout<<"trim tree leaves\n";
               this->objects = objects;
               return;
             }
             
             // sort geometry
 
-            Vec3d middle0 = min;
-            middle0[currentAxis] = split;
-            Vec3d middle1 = max;
-            middle1[currentAxis] = split;
+            // Vec3d min = bbox.getMin();
+            // Vec3d max = bbox.getMax();
+
+             Vec3d split_min = bbox.getMin();
+             Vec3d split_max = bbox.getMax();
+            split_min[currentAxis] = split;
+            split_max[currentAxis] = split;
             
             // recursively build tree
-            left = new KdTree(depth - 1, BoundingBox(min, middle1), size);
+            left = new KdTree(depth - 1, BoundingBox(bbox.getMin(), split_max), size);
+            //cout<<depth<<endl;
             left->setCurrentAxis((currentAxis + 1) % 3);
-            left->addObjects(vleft);
-            right = new KdTree(depth - 1, BoundingBox(middle0, max), size);
+            left->addObjects(left_objects);
+            right = new KdTree(depth - 1, BoundingBox(split_min, bbox.getMax()), size);
             right->setCurrentAxis((currentAxis + 1) % 3);
-            right->addObjects(vright);
+            right->addObjects(right_objects);
       }
 
 
@@ -336,17 +363,23 @@ class KdTree{
         double tmax = 0.0;
         // get intersection time
         bool have_one = bbox.intersect(r, tmin, tmax);
-        if (!have_one) 
+        if (!have_one) {
+          //cout<<"not have one\n";
           return false;
+        }
         have_one = false;
+
         // only leaves have objects
-        for (auto obj = objects.begin(); obj != objects.end(); obj ++) {
+        std::vector<Geometry*>::iterator obj;
+        for( obj = objects.begin(); obj != objects.end(); ++obj ){
+        //for (auto obj = objects.begin(); obj != objects.end(); obj ++) {//cindy
             isect current;
-            BoundingBox bb = (*obj)->getBoundingBox();
+            //BoundingBox bb = (*obj)->getBoundingBox();//cindy
             if ((*obj)->intersect(r, current)) {
                 if (!have_one || current.t < i.t) {
                     i = current;
                     have_one = true;
+
                 }
             }
         }
@@ -359,33 +392,36 @@ class KdTree{
         double min = r.at(tmin)[currentAxis];
         double max = r.at(tmax)[currentAxis];
         // determine the sequence of visiting nodes
-        if (min <= max && max - RAY_EPSILON <= split) { 
+        if (min <= max + RAY_EPSILON && max - RAY_EPSILON <= split) { 
           return left->intersect(r, i); 
         }
 
-        if (min <= max && min + RAY_EPSILON >= split) { 
+        if (min <= max + RAY_EPSILON && min + RAY_EPSILON >= split) { 
           return right->intersect(r, i); 
         }
 
-        if (min <= max && min - RAY_EPSILON <= split && split <= max + RAY_EPSILON) {
-            bool leftIntersect = left->intersect(r, i);
-            if (leftIntersect  && r.at(i.t)[currentAxis] <= split ) 
+        if (min <= max + RAY_EPSILON && min - RAY_EPSILON <= split && split <= max + RAY_EPSILON) {
+            //bool leftIntersect = left->intersect(r, i);
+            if (left->intersect(r, i)) 
               return true;
+            // if ( (r.at(i.t)[currentAxis]) <= split ){ // - RAY_EPSILON//mark
+            //   return true;
+            // }
             if (right->intersect(r, i)) 
               return true;
         } 
 
-        if (min > max && max + RAY_EPSILON >= split) { 
+        if (min + RAY_EPSILON >= max && max + RAY_EPSILON >= split) { 
           return right->intersect(r, i); 
         }
 
-        if (min > max && min - RAY_EPSILON <= split) { 
+        if (min + RAY_EPSILON >= max && min - RAY_EPSILON <= split) { 
           return left->intersect(r, i); 
         }
 
-        if (min > max && max -RAY_EPSILON <= split && split <= min + RAY_EPSILON) { 
-            bool rightIntersect = right->intersect(r, i);
-            if (rightIntersect  &&  r.at(i.t)[currentAxis] >= split) 
+        if (min + RAY_EPSILON >= max && max -RAY_EPSILON <= split && split <= min + RAY_EPSILON) { 
+            //bool rightIntersect = right->intersect(r, i);
+            if (right->intersect(r, i)) // + RAY_EPSILON//mark//  &&  (r.at(i.t)[currentAxis]) >= split
                 return true;
             if (left->intersect(r, i)) 
                 return true;
@@ -493,6 +529,7 @@ public:
 
   }
 
+
  private:
   std::vector<Geometry*> objects;
   std::vector<Geometry*> nonboundedobjects;
@@ -514,6 +551,7 @@ public:
   
   //KdTree<Geometry>* kdtree;
   KdTree* kdtree;//cindy
+
 
 
  public:
