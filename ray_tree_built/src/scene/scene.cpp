@@ -11,7 +11,10 @@ using namespace std;
 
 bool Geometry::intersect(ray& r, isect& i) const {
 	double tmin, tmax;
-	if (hasBoundingBoxCapability() && !(bounds.intersect(r, tmin, tmax))) return false;
+	if (hasBoundingBoxCapability() && !(bounds.intersect(r, tmin, tmax))) {
+		return false;
+
+	}
 	// Transform the ray into the object's local coordinate space
 	Vec3d pos = transform->globalToLocalCoords(r.p);
 	Vec3d dir = transform->globalToLocalCoords(r.p + r.d) - pos;
@@ -63,7 +66,6 @@ bool Scene::intersect(ray& r, isect& i) const {
 	bool have_one = false;
 	typedef vector<Geometry*>::const_iterator iter;
 	if(!graphicalUI->m_kdtreeInfo){
-		//cout << "scene intersect not kd\n";
 		for(iter j = objects.begin(); j != objects.end(); ++j) {
 			isect cur;
 			if( (*j)->intersect(r, cur) ) {
@@ -74,7 +76,6 @@ bool Scene::intersect(ray& r, isect& i) const {
 			}
 		}
 	}else{
-		//cout << "scene intersect kd\n";
 		have_one = kdtree->intersect(r, i);//cindy
 	}
 

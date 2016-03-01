@@ -87,11 +87,15 @@ class TrimeshFace : public MaterialSceneObject
     int ids[3];
     Vec3d normal;
     double dist;
+    TransformNode *transform;
 
 public:
     TrimeshFace( Scene *scene, Material *mat, Trimesh *parent, int a, int b, int c)
         : MaterialSceneObject( scene, mat )
     {
+
+        this->transform = parent->transform->createChild(parent->transform->transform());//zyc
+
         this->parent = parent;
         ids[0] = a;
         ids[1] = b;
@@ -130,7 +134,7 @@ public:
 		return normal;
 	}
 
-    bool intersect(ray& r, isect& i ) const;
+    //bool intersect(ray& r, isect& i ) const;//zyc
     bool intersectLocal(ray& r, isect& i ) const;
 
     bool hasBoundingBoxCapability() const { return true; }
@@ -146,7 +150,7 @@ public:
         return localbounds;
     }
 
-    const BoundingBox& getBoundingBox() const { return localbounds; }
+    //const BoundingBox& getBoundingBox() const { return localbounds; }//zyc
 
  };
 

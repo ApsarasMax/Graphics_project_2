@@ -40,7 +40,7 @@ bool Trimesh::addFace( int a, int b, int c )
 
     if( a >= vcnt || b >= vcnt || c >= vcnt ) return false;
 
-    TrimeshFace *newFace = new TrimeshFace( scene, new Material(*this->material), this, a, b, c );
+    TrimeshFace *newFace = new TrimeshFace( scene, new Material(*this->material),  this, a, b, c );
     newFace->setTransform(this->transform);
     if (!newFace->degen) faces.push_back( newFace );
 
@@ -87,14 +87,15 @@ bool Trimesh::intersectLocal(ray& r, isect& i) const
         //cout << "trimesh intersect kd\n";
 
         have_one = kdtree->intersect(r, i);
+
     }
 	if( !have_one ) i.setT(1000.0);
 	return have_one;
 }
 
-bool TrimeshFace::intersect(ray& r, isect& i) const {
-  return intersectLocal(r, i);
-}
+// bool TrimeshFace::intersect(ray& r, isect& i) const {//zyc
+//   return intersectLocal(r, i);
+// }
 
 // Intersect ray r with the triangle abc.  If it hits returns true,
 // and put the parameter in t and the barycentric coordinates of the
@@ -201,7 +202,6 @@ void Trimesh::generateNormals()
 }
 
 void Trimesh::buildKdTree(){//cindy
-    cout<<"kdTreeBuilt"<<endl;
     if(!kdTreeBuilt){
         
         std::vector<Geometry*> objects(faces.size());
@@ -211,5 +211,4 @@ void Trimesh::buildKdTree(){//cindy
         kdTreeBuilt = true;
 
     }
-
 }

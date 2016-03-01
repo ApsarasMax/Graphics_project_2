@@ -65,15 +65,17 @@ public:
 
 	//kdtree
 	Fl_Check_Button*	m_kdtreeCheckButton;
-	
 	static int	m_nKdtreeMaxDepth; //zyc
 	static int	m_nKdtreeLeafSize;
-
 	static Fl_Slider*			m_kdtreeMaxDepthSlider;
 	static Fl_Slider*			m_kdtreeLeafSizeSlider;
-	//kdtree
 	static bool m_kdtreeInfo;
-	
+
+	//anti-aliasing
+	Fl_Check_Button*	m_antiAliaseCheckButton;
+	static int	m_nAntiAliasingDegree;
+	static Fl_Slider*			m_antiAliasingDegreeSlider;
+	static bool m_antiAliaseInfo;;
 	
 
 	// member functions
@@ -117,7 +119,11 @@ private:
 	static void cb_kdtreeCheckButton(Fl_Widget* o, void* v);
 	static void cb_kdtreeMaxSlides(Fl_Widget* o, void* v);
 	static void cb_kdtreeLeafSlides(Fl_Widget* o, void* v);
-	
+
+	//anti-aliasing
+	static void cb_antiAliaseCheckButton(Fl_Widget* o, void* v);
+	static void cb_antiAliasingDegreeSlides(Fl_Widget* o, void* v);
+			
 	static bool stopTrace;
 	static bool doneTrace;
 	static GraphicalUI* pUI;

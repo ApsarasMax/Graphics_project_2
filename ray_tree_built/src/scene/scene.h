@@ -115,7 +115,8 @@ class TransformRoot : public TransformNode {
 // spatial subdivision could be expressed in terms of Geometry instances.
 class Geometry : public SceneElement {
 
-protected:
+//protected:
+  public://zyc
   // intersections performed in the object's local coordinate space
   // do not call directly - this should only be called by intersect()
   virtual bool intersectLocal(ray& r, isect& i ) const = 0;
@@ -123,6 +124,7 @@ protected:
 public:
   // intersections performed in the global coordinate space.
   bool intersect(ray& r, isect& i) const;
+
 
   virtual bool hasBoundingBoxCapability() const;
   const BoundingBox& getBoundingBox() const { return bounds; }
@@ -184,6 +186,7 @@ public:
   virtual void glDrawLocal(int quality, bool actualMaterials, bool actualTextures) const { }
   virtual void buildKdTree() {}//cindy//mark
 
+
   
  protected:
   BoundingBox bounds;
@@ -238,6 +241,8 @@ class KdTree{
         int size;
         
     public:
+//TransformNode *transform;
+
         KdTree* left;
         KdTree* right;
         KdTree (int depth, BoundingBox bbox, int size) {
@@ -249,11 +254,6 @@ class KdTree{
           right = nullptr;
         }
 
-        // KdTree (BoundingBox b) {
-        //   left = nullptr;
-        //   right = nullptr;
-        //   boundary = b;
-        // }
         ~KdTree() {
           if (!objects.empty())
             objects.clear();
@@ -266,17 +266,9 @@ class KdTree{
           return objects;
         }
 
-        // BoundingBox getBoundary() {
-        //   return bbox;
-        // }
-
         void setCurrentAxis(int currentAxis) {
           this->currentAxis = currentAxis;
         }
-
-        // int getCurrentAxis() {
-        //   return currentAxis;
-        // }
 
         void addObjects (std::vector<Geometry*> &objects) {
             if (objects.size() < size || depth <= 0) {
@@ -289,67 +281,45 @@ class KdTree{
             std::vector<Geometry*>::iterator obj;
             for( obj = objects.begin(); obj != objects.end(); ++obj ){
               BoundingBox tmpBox = (*obj) -> ComputeLocalBoundingBox();
-              split += (tmpBox.getMin()[currentAxis] + tmpBox.getMax()[currentAxis]) / 2;
+              //split += (tmpBox.getMin()[currentAxis] + tmpBox.getMax()[currentAxis]) / 2;
+              split += (max(tmpBox.getMin()[currentAxis], bbox.getMin()[currentAxis]) + min(tmpBox.getMax()[currentAxis], bbox.getMax()[currentAxis])) / 2;
             }
             split /= objects.size();
            
-            //split = (min[currentAxis] + max[currentAxis]) / 2.0;//cindy
             std::vector<Geometry*> left_objects;
             std::vector<Geometry*> right_objects;
-            bool added = false;//cindy
             int countLeft = 0;
-
 
             for( obj = objects.begin(); obj != objects.end(); ++obj ){
               BoundingBox tmpBox = (*obj) -> ComputeLocalBoundingBox();
               if((tmpBox.getMin()[currentAxis] + tmpBox.getMax()[currentAxis]) / 2<=split){
+
                 left_objects.push_back((*obj));
+        		  if(tmpBox.getMax()[currentAxis]>=split){
+        			  right_objects.push_back((*obj));	
+		          }
                 countLeft ++;
               }else{
                 right_objects.push_back((*obj));
+		            if(tmpBox.getMin()[currentAxis]<=split){
+			           left_objects.push_back((*obj));
+		            }
               }
             }
 
-            // for(auto obj: objects){//cindy
-            //   times++;
-            //     //added = false;
-            //     if (!obj->hasBoundingBoxCapability()){//mark
-            //       cout<<"mark\n";
-            //       continue;
-            //     }
-            //     if (obj->getBoundingBox().getMin()[currentAxis] <= split) {
-            //         //added = true;
-            //         left_objects.push_back(obj);
-            //         countLeft ++;
-            //     }
-            //     if (obj->getBoundingBox().getMax()[currentAxis] >= split) {
-            //         //added = true;
-            //         right_objects.push_back(obj);
-            //     }
-            //     // debug: if everything is added
-            //     //assert(added);//cindy
-            // }
-
             //trim tree leaves
             if (countLeft == 0 || countLeft == objects.size()) {//mark
-              cout<<"trim tree leaves\n";
               this->objects = objects;
               return;
             }
-            
-            // sort geometry
 
-            // Vec3d min = bbox.getMin();
-            // Vec3d max = bbox.getMax();
-
-             Vec3d split_min = bbox.getMin();
-             Vec3d split_max = bbox.getMax();
+            Vec3d split_min = bbox.getMin();
+            Vec3d split_max = bbox.getMax();
             split_min[currentAxis] = split;
             split_max[currentAxis] = split;
             
             // recursively build tree
             left = new KdTree(depth - 1, BoundingBox(bbox.getMin(), split_max), size);
-            //cout<<depth<<endl;
             left->setCurrentAxis((currentAxis + 1) % 3);
             left->addObjects(left_objects);
             right = new KdTree(depth - 1, BoundingBox(split_min, bbox.getMax()), size);
@@ -362,32 +332,31 @@ class KdTree{
         double tmin = 0.0;
         double tmax = 0.0;
         // get intersection time
-        bool have_one = bbox.intersect(r, tmin, tmax);
-        if (!have_one) {
-          //cout<<"not have one\n";
+        if(!bbox.intersect(r, tmin, tmax)){//hasBoundingBoxCapability()
           return false;
         }
-        have_one = false;
+
+        bool have_one = false;
 
         // only leaves have objects
         std::vector<Geometry*>::iterator obj;
         for( obj = objects.begin(); obj != objects.end(); ++obj ){
-        //for (auto obj = objects.begin(); obj != objects.end(); obj ++) {//cindy
-            isect current;
-            //BoundingBox bb = (*obj)->getBoundingBox();//cindy
-            if ((*obj)->intersect(r, current)) {
-                if (!have_one || current.t < i.t) {
-                    i = current;
+            isect cur;
+            if ((*obj)->intersect(r, cur)) {//Local
+                if (!have_one || (cur.t < i.t)) {
+                    i = cur;
                     have_one = true;
-
                 }
             }
         }
+
+        //terminate
         if (objects.size() != 0) {
             if (!have_one)
               i.setT(1000.0);
             return have_one;
         }
+
         // get intersection point
         double min = r.at(tmin)[currentAxis];
         double max = r.at(tmax)[currentAxis];
@@ -399,14 +368,9 @@ class KdTree{
         if (min <= max + RAY_EPSILON && min + RAY_EPSILON >= split) { 
           return right->intersect(r, i); 
         }
-
         if (min <= max + RAY_EPSILON && min - RAY_EPSILON <= split && split <= max + RAY_EPSILON) {
-            //bool leftIntersect = left->intersect(r, i);
             if (left->intersect(r, i)) 
               return true;
-            // if ( (r.at(i.t)[currentAxis]) <= split ){ // - RAY_EPSILON//mark
-            //   return true;
-            // }
             if (right->intersect(r, i)) 
               return true;
         } 
@@ -420,49 +384,13 @@ class KdTree{
         }
 
         if (min + RAY_EPSILON >= max && max -RAY_EPSILON <= split && split <= min + RAY_EPSILON) { 
-            //bool rightIntersect = right->intersect(r, i);
-            if (right->intersect(r, i)) // + RAY_EPSILON//mark//  &&  (r.at(i.t)[currentAxis]) >= split
+            if (right->intersect(r, i))
                 return true;
             if (left->intersect(r, i)) 
                 return true;
         }
         return false;
     }
-
-    //   bool intersect(ray& r, isect& i, int unused) {
-    //     std::stack<KdTree*> s;
-    //     s.push(this);
-    //     while (!s.empty()) {
-    //       KdTree *current = s.top();
-    //       s.pop();
-    //       double tmin = 0.0;
-    //       double tmax = 0.0;
-    //       bool have_one = current->getBoundary().intersect(r, tmin, tmax);
-          
-    //       if (!have_one) 
-    //         return false;
-    //       have_one = false;
-    //       if (current->getObjects().size() != 0) {
-    //           std::vector<Geometry*> objects = current->getObjects();
-    //           for (auto obj = objects.begin(); obj != objects.end(); obj ++) {
-    //               isect currentIn;
-    //               if ((*obj)->intersect(r, currentIn)) {
-    //                   if (!have_one || currentIn.t < i.t) {
-    //                       i = currentIn;
-    //                       have_one = true;
-    //                   }
-    //               }
-    //           }
-    //           return have_one;
-    //       }
-    //       if (left != nullptr)
-    //         s.push(left);
-    //       if (right != nullptr)
-    //         s.push(right);
-    //     }
-    //     return false;
-    // }
-
 };
 
 
@@ -517,16 +445,8 @@ public:
     for( g = objects.begin(); g != objects.end(); ++g ){
       (*g)->buildKdTree();
     }
-
-    // for(auto obj: objects){
-    //   cout<<"enter1\n";
-    //   obj->buildKdTree();
-    // }
     kdtree = new KdTree(depth, sceneBounds, size);
-    //cout<<"enter\n";
     kdtree->addObjects(objects);
-    //cout<<"enter\n";
-
   }
 
 

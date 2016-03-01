@@ -16,6 +16,8 @@
 #include "GraphicalUI.h"
 #include "../RayTracer.h"
 
+#include "../scene/scene.h"//zyc
+
 #define MAX_INTERVAL 500
 
 #ifdef _WIN32
@@ -34,8 +36,11 @@ int	GraphicalUI::m_nKdtreeMaxDepth = 5; //zyc
 int	GraphicalUI::m_nKdtreeLeafSize = 10; //zyc
 Fl_Slider*	GraphicalUI::m_kdtreeMaxDepthSlider = nullptr;
 Fl_Slider*	GraphicalUI::m_kdtreeLeafSizeSlider = nullptr;
-bool GraphicalUI::m_kdtreeInfo = true;
 
+bool GraphicalUI::m_kdtreeInfo = true;
+bool GraphicalUI::m_antiAliaseInfo = true;
+int	GraphicalUI::m_nAntiAliasingDegree = 3; //zyc
+Fl_Slider*	GraphicalUI::m_antiAliasingDegreeSlider = nullptr;
 
 //------------------------------------- Help Functions --------------------------------------------
 GraphicalUI* GraphicalUI::whoami(Fl_Menu_* o)	// from menu item back to UI itself
@@ -174,12 +179,32 @@ void GraphicalUI::cb_kdtreeLeafSlides(Fl_Widget* o, void* v)
 	((GraphicalUI*)(o->user_data()))->m_nKdtreeLeafSize=int( ((Fl_Slider *)o)->value() ) ;
 }
 
+//anti-aliasing
+void GraphicalUI::cb_antiAliaseCheckButton(Fl_Widget* o, void* v)
+{
+	pUI=(GraphicalUI*)(o->user_data());
+	pUI->m_antiAliaseInfo = (((Fl_Check_Button*)o)->value() == 1);
+	if (pUI->m_antiAliaseInfo){
+		pUI->m_antiAliasingDegreeSlider->activate();
+	}else{
+		pUI->m_antiAliasingDegreeSlider->deactivate();
+	}
+
+}
+
+void GraphicalUI::cb_antiAliasingDegreeSlides(Fl_Widget* o, void* v)
+{
+	((GraphicalUI*)(o->user_data()))->m_nAntiAliasingDegree=int( ((Fl_Slider *)o)->value() ) ;
+}
+
 void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
 
 	char buffer[256];
 
 	pUI = (GraphicalUI*)(o->user_data());
 	doneTrace = stopTrace = false;
+
+	
 	if (pUI->raytracer->sceneLoaded())
 	  {
 		int width = pUI->getSize();
@@ -222,7 +247,38 @@ void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
 		// Restore the window label
 		pUI->m_traceGlWindow->label(old_label);
 		pUI->m_traceGlWindow->refresh();
-	  }
+
+		if(m_antiAliaseInfo){
+			unsigned char *buf;
+			int width, height;
+			pUI->getRayTracer()->getBuffer(buf, width, height);
+			Vec3d col = Vec3d(0, 0, 0);
+			double degree = pUI->m_nAntiAliasingDegree;
+	
+			for(int i = 0; i < height; i++){
+				for (int j = 0; j < width; j++){
+					if (stopTrace) break;
+					unsigned char *pixel = buf + ( i + j * width ) * 3;
+					double x = double(i)/double(width);
+					double y = double(j)/double(height);
+					double deltaW = 1.0 / (double) width / degree;
+					double deltaH = 1.0 / (double) height / degree; 
+					for (int i1 = 0; i1 < degree; i1 ++){
+						for (int ji = 0; ji < degree; ji ++){
+							col += pUI->getRayTracer()->trace(x + deltaH * i1, y + deltaW * ji);
+						}
+					}
+					col[0] /= (degree * degree);
+					col[1] /= (degree * degree);
+					col[2] /= (degree * degree);
+					pixel[0] = (int)( 255.0 * min(col[0], 1.0));
+					pixel[1] = (int)( 255.0 * min(col[1], 1.0));
+					pixel[2] = (int)( 255.0 * min(col[2], 1.0));
+				}
+			}
+		}
+
+	}
 }
 
 void GraphicalUI::cb_stop(Fl_Widget* o, void* v)
@@ -341,9 +397,6 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_kdtreeCheckButton->callback(cb_kdtreeCheckButton);
 	m_kdtreeCheckButton->value(m_kdtreeInfo);
 
-	//Fl_Slider*			m_kdtreeMaxDepthSlider = nullptr;//zyc
-
-
 	// install ketree max depth slider
 	m_kdtreeMaxDepthSlider = new Fl_Value_Slider(100, 150, 180, 20, "Max depth");
 	m_kdtreeMaxDepthSlider->user_data((void*)(this));	// record self to be used by static callback functions
@@ -357,8 +410,6 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_kdtreeMaxDepthSlider->align(FL_ALIGN_RIGHT);
 	m_kdtreeMaxDepthSlider->callback(cb_kdtreeMaxSlides);
 
-	//Fl_Slider*			m_kdtreeLeafSizeSlider = nullptr;//zyc
-
 	// install kdtree leaf size slider
 	m_kdtreeLeafSizeSlider = new Fl_Value_Slider(100, 180, 180, 20, "Target Leaf size");
 	m_kdtreeLeafSizeSlider->user_data((void*)(this));	// record self to be used by static callback functions
@@ -371,6 +422,26 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_kdtreeLeafSizeSlider->value(m_nKdtreeLeafSize);
 	m_kdtreeLeafSizeSlider->align(FL_ALIGN_RIGHT);
 	m_kdtreeLeafSizeSlider->callback(cb_kdtreeLeafSlides);
+
+
+	// set up anti aliasing implementation checkbox
+	m_antiAliaseCheckButton = new Fl_Check_Button(10, 210, 80, 20, "~Aliase");
+	m_antiAliaseCheckButton->user_data((void*)(this));
+	m_antiAliaseCheckButton->callback(cb_antiAliaseCheckButton);
+	m_antiAliaseCheckButton->value(m_antiAliaseInfo);
+
+	// install anti aliasing degree slider
+	m_antiAliasingDegreeSlider = new Fl_Value_Slider(100, 210, 180, 20, "Anti-Aliasing Degree");
+	m_antiAliasingDegreeSlider->user_data((void*)(this));	// record self to be used by static callback functions
+	m_antiAliasingDegreeSlider->type(FL_HOR_NICE_SLIDER);//m_kdtreeLeafSizeSlider
+	m_antiAliasingDegreeSlider->labelfont(FL_COURIER);
+	m_antiAliasingDegreeSlider->labelsize(12);
+	m_antiAliasingDegreeSlider->minimum(1);
+	m_antiAliasingDegreeSlider->maximum(4);
+	m_antiAliasingDegreeSlider->step(1);
+	m_antiAliasingDegreeSlider->value(m_nAntiAliasingDegree);//m_nKdtreeLeafSize
+	m_antiAliasingDegreeSlider->align(FL_ALIGN_RIGHT);
+	m_antiAliasingDegreeSlider->callback(cb_antiAliasingDegreeSlides);//cb_kdtreeLeafSlides
 
 	m_mainWindow->callback(cb_exit2);
 	m_mainWindow->when(FL_HIDE);

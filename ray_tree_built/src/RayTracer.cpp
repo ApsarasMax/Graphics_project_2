@@ -209,10 +209,8 @@ bool RayTracer::loadScene( char* fn ) {
 
 	if( !sceneLoaded() ) return false;
 
-	if(graphicalUI->m_kdtreeInfo){//cindy
+	if(graphicalUI->m_kdtreeInfo){
 		scene->buildKdTree(graphicalUI->m_nKdtreeMaxDepth, graphicalUI->m_nKdtreeLeafSize);
-		//cout<<graphicalUI->m_nKdtreeLeafSize<<endl;
-		//cout<<graphicalUI->m_kdtreeInfo<<endl;
 	}
 
 	return true;
