@@ -75,7 +75,10 @@ public:
 	Fl_Check_Button*	m_antiAliaseCheckButton;
 	static int	m_nAntiAliasingDegree;
 	static Fl_Slider*			m_antiAliasingDegreeSlider;
-	static bool m_antiAliaseInfo;;
+	static bool m_antiAliaseInfo;
+
+	//cube map
+	static bool m_cubeMapInfo;
 	
 
 	// member functions
@@ -123,6 +126,9 @@ private:
 	//anti-aliasing
 	static void cb_antiAliaseCheckButton(Fl_Widget* o, void* v);
 	static void cb_antiAliasingDegreeSlides(Fl_Widget* o, void* v);
+
+	//cubeMap
+	static void cb_cubeMapCheckButton(Fl_Widget* o, void* v);
 			
 	static bool stopTrace;
 	static bool doneTrace;

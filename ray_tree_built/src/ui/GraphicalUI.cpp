@@ -42,6 +42,8 @@ bool GraphicalUI::m_antiAliaseInfo = true;
 int	GraphicalUI::m_nAntiAliasingDegree = 3; //zyc
 Fl_Slider*	GraphicalUI::m_antiAliasingDegreeSlider = nullptr;
 
+bool GraphicalUI::m_cubeMapInfo = false;
+
 //------------------------------------- Help Functions --------------------------------------------
 GraphicalUI* GraphicalUI::whoami(Fl_Menu_* o)	// from menu item back to UI itself
 {
@@ -189,12 +191,24 @@ void GraphicalUI::cb_antiAliaseCheckButton(Fl_Widget* o, void* v)
 	}else{
 		pUI->m_antiAliasingDegreeSlider->deactivate();
 	}
-
 }
 
 void GraphicalUI::cb_antiAliasingDegreeSlides(Fl_Widget* o, void* v)
 {
 	((GraphicalUI*)(o->user_data()))->m_nAntiAliasingDegree=int( ((Fl_Slider *)o)->value() ) ;
+}
+
+//cube map
+void GraphicalUI::cb_cubeMapCheckButton(Fl_Widget* o, void* v)
+{
+	pUI=(GraphicalUI*)(o->user_data());
+	pUI->m_cubeMapInfo = (((Fl_Check_Button*)o)->value() == 1);
+	// if (pUI->m_antiAliaseInfo){
+	// 	pUI->m_antiAliasingDegreeSlider->activate();
+	// }else{
+	// 	pUI->m_antiAliasingDegreeSlider->deactivate();
+	// }
+
 }
 
 void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
@@ -252,30 +266,34 @@ void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
 			unsigned char *buf;
 			int width, height;
 			pUI->getRayTracer()->getBuffer(buf, width, height);
-			Vec3d col = Vec3d(0, 0, 0);
+			
 			double degree = pUI->m_nAntiAliasingDegree;
-	
-			for(int i = 0; i < height; i++){
-				for (int j = 0; j < width; j++){
+
+
+			for( int j = 0; j < height; ++j ){
+				for( int i = 0; i < width; ++i ){
+					Vec3d col = Vec3d(0, 0, 0);
 					if (stopTrace) break;
-					unsigned char *pixel = buf + ( i + j * width ) * 3;
 					double x = double(i)/double(width);
 					double y = double(j)/double(height);
 					double deltaW = 1.0 / (double) width / degree;
-					double deltaH = 1.0 / (double) height / degree; 
+			 		double deltaH = 1.0 / (double) height / degree; 
+			 		// double deltaW = 1.0 / (double)degree;
+			 		// double deltaH = 1.0 / (double)degree; 
 					for (int i1 = 0; i1 < degree; i1 ++){
 						for (int ji = 0; ji < degree; ji ++){
-							col += pUI->getRayTracer()->trace(x + deltaH * i1, y + deltaW * ji);
+							col += pUI->getRayTracer()->trace(x + deltaW * i1, y + deltaH * ji);
 						}
 					}
-					col[0] /= (degree * degree);
-					col[1] /= (degree * degree);
-					col[2] /= (degree * degree);
+
+					col /= (degree*degree);
+					unsigned char *pixel = buf + ( i + j * width ) * 3;
 					pixel[0] = (int)( 255.0 * min(col[0], 1.0));
 					pixel[1] = (int)( 255.0 * min(col[1], 1.0));
 					pixel[2] = (int)( 255.0 * min(col[2], 1.0));
 				}
 			}
+
 		}
 
 	}
@@ -442,6 +460,13 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_antiAliasingDegreeSlider->value(m_nAntiAliasingDegree);//m_nKdtreeLeafSize
 	m_antiAliasingDegreeSlider->align(FL_ALIGN_RIGHT);
 	m_antiAliasingDegreeSlider->callback(cb_antiAliasingDegreeSlides);//cb_kdtreeLeafSlides
+
+	// set up cube map implementation checkbox
+	m_cubeMapCheckButton = new Fl_Check_Button(10, 250, 80, 20, "CubeMap");
+	m_cubeMapCheckButton->user_data((void*)(this));//m_antiAliaseCheckButton
+	m_cubeMapCheckButton->callback(cb_cubeMapCheckButton);//cb_antiAliaseCheckButton
+	m_cubeMapCheckButton->value(m_cubeMapInfo);//m_antiAliaseInfo
+
 
 	m_mainWindow->callback(cb_exit2);
 	m_mainWindow->when(FL_HIDE);
