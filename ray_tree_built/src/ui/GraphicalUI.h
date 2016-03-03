@@ -63,6 +63,8 @@ public:
 
 	DebuggingWindow*	m_debuggingWindow;
 
+	CubeMapChooser* pMap;
+
 	//kdtree
 	Fl_Check_Button*	m_kdtreeCheckButton;
 	static int	m_nKdtreeMaxDepth; //zyc
@@ -79,6 +81,12 @@ public:
 
 	//cube map
 	static bool m_cubeMapInfo;
+
+	//multithread
+	Fl_Check_Button*	m_multiThreadCheckButton;
+	static bool m_multiThreadInfo;
+	static Fl_Slider*			m_multiThreadSlider;
+	static int	m_nMultiThread; //zyc
 	
 
 	// member functions
@@ -100,6 +108,7 @@ private:
 	static GraphicalUI* whoami(Fl_Menu_* o);
 
 	static void cb_load_scene(Fl_Menu_* o, void* v);
+	static void cb_load_cubeMap(Fl_Menu_* o, void* v);
 	static void cb_save_image(Fl_Menu_* o, void* v);
 	static void cb_exit(Fl_Menu_* o, void* v);
 	static void cb_about(Fl_Menu_* o, void* v);
@@ -110,6 +119,12 @@ private:
 	static void cb_sizeSlides(Fl_Widget* o, void* v);
 	static void cb_depthSlides(Fl_Widget* o, void* v);
 	static void cb_refreshSlides(Fl_Widget* o, void* v);
+
+	static void show_picture(const char *old_label, int width_start, int width, int height_start, int height);
+	//static void *show_picture(void *threadarg);
+	static void *PrintHello(void *threadarg);
+	static void *antiAliasing(void *threadarg);
+
 
 	static void cb_render(Fl_Widget* o, void* v);
 	static void cb_stop(Fl_Widget* o, void* v);
@@ -127,8 +142,14 @@ private:
 	static void cb_antiAliaseCheckButton(Fl_Widget* o, void* v);
 	static void cb_antiAliasingDegreeSlides(Fl_Widget* o, void* v);
 
+	//multithread
+	static void cb_multiThreadCheckButton(Fl_Widget* o, void* v);
+	
 	//cubeMap
 	static void cb_cubeMapCheckButton(Fl_Widget* o, void* v);
+	static void cb_filterSlides(Fl_Widget* o, void* v);
+	
+	static void cb_multiThreadSlides(Fl_Widget* o, void* v);
 			
 	static bool stopTrace;
 	static bool doneTrace;

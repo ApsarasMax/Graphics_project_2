@@ -6,6 +6,7 @@
 #include "scene/ray.h"
 #include <time.h>
 #include <queue>
+#include "scene/cubeMap.h"
 
 class Scene;
 
@@ -32,11 +33,20 @@ public:
 
 	const Scene& getScene() { return *scene; }
 
+	void setCubeMap(CubeMap* m) {
+            if (cubeMap) delete cubeMap;
+            cubeMap = m;
+        }
+    CubeMap *getCubeMap() {return cubeMap;}
+    
+    bool haveCubeMap() { return cubeMap != 0; }
+
 public:
         unsigned char *buffer;
         int buffer_width, buffer_height;
         int bufferSize;
         Scene* scene;
+        CubeMap* cubeMap;
 
         bool m_bBufferReady;
 };

@@ -4,7 +4,7 @@
 
 INCLUDE = -I/lusr/opt/fltk1.3-1.3.0/include
 LIBS = -L/lusr/opt/fltk1.3-1.3.0/lib -lfltk -lfltk_gl -lfltk_images
-LIBS += -L/usr/lib/nvidia-352 -lGL -lGLU -ljpeg -lpng -lz
+LIBS += -L/usr/lib/nvidia-352 -lGL -lGLU -ljpeg -lpng -lz -lpthread
 
 CFLAGS = -g -std=c++11 $(INCLUDE) $(LIBS) 
 #CFLAGS = -O1 -std=c++11 $(INCLUDE) $(LIBS) 
@@ -22,7 +22,7 @@ CC = g++
 ALL.O = src/main.o src/getopt.o src/RayTracer.o \
 	src/ui/CommandLineUI.o src/ui/GraphicalUI.o src/ui/TraceGLWindow.o \
 	src/ui/debuggingView.o src/ui/glObjects.o src/ui/debuggingWindow.o \
-	src/ui/ModelerCamera.o src/ui/CubeMapChooser.o  \
+	src/ui/ModelerCamera.o src/ui/CubeMapChooser.o \
 	src/fileio/bitmap.o src/fileio/buffer.o \
 	src/fileio/pngimage.o \
 	src/parser/Token.o src/parser/Tokenizer.o \

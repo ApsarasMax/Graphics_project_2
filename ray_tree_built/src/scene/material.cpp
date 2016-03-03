@@ -133,7 +133,27 @@ Vec3d TextureMap::getMappedValue( const Vec2d& coord ) const
   // and use these to perform bilinear interpolation
   // of the values.
 
-  return Vec3d(1,1,1);
+  double width = getWidth() * coord[0];
+  double height = getHeight() * coord[1];
+  int low_width = (int)width;
+  int low_height = (int)height;
+  int high_width = low_width+1;
+  int high_height = low_height+1;
+
+  Vec3d pointLowLow = getPixelAt(low_width, low_height);
+  Vec3d pointHighLow = getPixelAt(high_width, low_height);
+  Vec3d pointLowHigh = getPixelAt(low_width, high_height);
+  Vec3d pointHighHigh = getPixelAt(high_width, high_height);
+
+  double alphaLowHeight = high_height - height;
+  double alphaHighHeight = height - low_height;
+  double alphaLowWidth = high_width - width;
+  double alphaHighWidth = width - low_width;
+
+  return pointLowLow*alphaHighWidth*alphaHighHeight
+  +pointHighLow*alphaLowWidth*alphaHighHeight
+  +pointLowHigh*alphaHighWidth*alphaLowHeight
+  +pointHighHigh*alphaLowWidth*alphaLowHeight;
 
 }
 
