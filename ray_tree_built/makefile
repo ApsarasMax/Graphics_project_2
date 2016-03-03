@@ -4,7 +4,7 @@
 
 INCLUDE = -I/lusr/opt/fltk1.3-1.3.0/include
 LIBS = -L/lusr/opt/fltk1.3-1.3.0/lib -lfltk -lfltk_gl -lfltk_images
-LIBS += -L/usr/lib/nvidia-352 -lGL -lGLU -ljpeg -lpng -lz -lpthread
+LIBS += -L/usr/lib/nvidia-352 -lGL -lGLU -ljpeg -lpng -lz 
 
 CFLAGS = -g -std=c++11 $(INCLUDE) $(LIBS) 
 #CFLAGS = -O1 -std=c++11 $(INCLUDE) $(LIBS) 

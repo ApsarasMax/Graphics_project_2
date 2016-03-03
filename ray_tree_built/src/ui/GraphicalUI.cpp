@@ -8,7 +8,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include <pthread.h>//pthread
+//#include <pthread.h>//pthread
+#include <thread>
 #include <mutex>          // std::mutex
 
 #ifndef COMMAND_LINE_ONLY
@@ -253,11 +254,26 @@ void GraphicalUI::cb_filterSlides(Fl_Widget* o, void* v)
 	((GraphicalUI*)(o->user_data()))->m_nFilterWidth=int( ((Fl_Slider *)o)->value() ) ;
 }
 
-//working on
-struct thread_data{
-	int height_start;
-	int height_end;
-};
+//smooth shade
+void GraphicalUI::cb_ssCheckButton(Fl_Widget* o, void* v)
+{
+	pUI=(GraphicalUI*)(o->user_data());
+	pUI->m_smoothshade = (((Fl_Check_Button*)o)->value() == 1);
+}
+
+//shadows
+void GraphicalUI::cb_shCheckButton(Fl_Widget* o, void* v)
+{
+	pUI=(GraphicalUI*)(o->user_data());
+	pUI->m_shadows = (((Fl_Check_Button*)o)->value() == 1);
+}
+
+
+// //working on
+// struct thread_data{
+// 	int height_start;
+// 	int height_end;
+// };
 
 //void* GraphicalUI::show_picture(const char *old_label, int width_start, int width, int height_start, int height){
 // void* GraphicalUI::show_picture(void *threadarg){
@@ -338,32 +354,15 @@ void GraphicalUI::show_picture(const char *old_label, int width_start, int width
 			   }
 }
 
+void GraphicalUI::antiAliasing(int height_start, int height_end){
 
-
-// void* GraphicalUI::PrintHello(void *threadarg)
+// std::mutex mtx;           // mutex for critical section
+//   mtx.lock();
 // {
-//    struct thread_data *my_data;
-
-//    my_data = (struct thread_data *) threadarg;
-
-//    cout << "width_start : " << my_data->width_start<<endl;
-//    cout << "width : " << my_data->width<<endl;
-//    cout << "height_start : " << my_data->height_start<<endl;
-//    cout << "height : " << my_data->height<<endl;
-
-
-//    //pthread_exit(NULL);
-// }
-
-void* GraphicalUI::antiAliasing(void *threadarg){
-
-std::mutex mtx;           // mutex for critical section
-  mtx.lock();
-{
-	struct thread_data *my_data;
-	my_data = (struct thread_data *) threadarg;
-	int height_start = my_data->height_start;
-	int height_end = my_data->height_end;
+	// struct thread_data *my_data;
+	// my_data = (struct thread_data *) threadarg;
+	// int height_start = my_data->height_start;
+	// int height_end = my_data->height_end;
 
 	cout<<height_start<<endl;
 	cout<<height_end<<endl;
@@ -400,8 +399,8 @@ std::mutex mtx;           // mutex for critical section
 			pixel[2] = (int)( 255.0 * min(col[2], 1.0));
 		}
 	}
-}	
-	  mtx.unlock();
+//}	
+	  //mtx.unlock();
 	//pthread_exit(NULL);
 }
 
@@ -466,30 +465,48 @@ void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
 				 pUI->getRayTracer()->getBuffer(buf, width, height);
 				
 				//thread
-		        pthread_t threads[NUM_THREADS];
-				struct thread_data td[NUM_THREADS];
-				int rc;
-				int thread_num;
+				std::thread t[NUM_THREADS];
+		        //pthread_t threads[NUM_THREADS];
+				//struct thread_data td[NUM_THREADS];
+				// int rc;
+				//int thread_num;
 
-				for( thread_num=0; thread_num < NUM_THREADS; thread_num++ ){
-				   cout <<"main() : creating thread, " << thread_num << endl;
+				for (int thread_num = 0; thread_num < NUM_THREADS; ++thread_num) {
+					int height_start = (thread_num/(double)NUM_THREADS)*height;
+					int height_end = ((thread_num+1)/(double)NUM_THREADS)*height;
+					cout<<thread_num<<":"<<height_start<<endl;
+					cout<<thread_num<<":"<<height_end<<endl;
 
-				   // td[i].thread_id = i;
-				   // td[i].message = "This is message";
+              		t[thread_num] = std::thread(antiAliasing, height_start, height_end);
+     		    }
+ 
+	       		std::cout << "Launched from the main\n";
+	 
+	         //Join the threads with the main thread
+		        for (int i = 0; i < NUM_THREADS; ++i) {
+		            t[i].join();
+		        }
 
-					td[thread_num].height_start = (thread_num/(double)NUM_THREADS)*height;
-					td[thread_num].height_end = ((thread_num+1)/(double)NUM_THREADS)*height;
-					//cout<<td[i].height<<endl;
-					cout<<thread_num<<":"<<td[thread_num].height_start<<endl;
-					cout<<thread_num<<":"<<td[thread_num].height_end<<endl;
+				// for( thread_num=0; thread_num < NUM_THREADS; thread_num++ ){
+				//    cout <<"main() : creating thread, " << thread_num << endl;
+
+				//    // td[i].thread_id = i;
+				//    // td[i].message = "This is message";
+
+				// 	td[thread_num].height_start = (thread_num/(double)NUM_THREADS)*height;
+				// 	td[thread_num].height_end = ((thread_num+1)/(double)NUM_THREADS)*height;
+				// 	//cout<<td[i].height<<endl;
+				// 	cout<<thread_num<<":"<<td[thread_num].height_start<<endl;
+				// 	cout<<thread_num<<":"<<td[thread_num].height_end<<endl;
 
 
-				   rc = pthread_create(&threads[thread_num], NULL, antiAliasing, (void *)&td[thread_num]);
-				   if (rc){
-				      cout << "Error:unable to create thread," << rc << endl;
-				      exit(-1);
-				   }
-				}
+				//    rc = pthread_create(&threads[thread_num], NULL, antiAliasing, (void *)&td[thread_num]);
+				//    if (rc){
+				//       cout << "Error:unable to create thread," << rc << endl;
+				//       exit(-1);
+				//    }
+				// }
+
 			}else{
 
 	unsigned char *buf;
@@ -737,6 +754,18 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_filterSlider->align(FL_ALIGN_RIGHT);
 	m_filterSlider->callback(cb_filterSlides);
 	m_filterSlider->deactivate();
+
+	// set up smooth shade implementation checkbox
+	m_ssCheckButton = new Fl_Check_Button(10, 365, 80, 20, "SmoothShade");
+	m_ssCheckButton->user_data((void*)(this));//m_antiAliaseCheckButton
+	m_ssCheckButton->callback(cb_ssCheckButton);//cb_antiAliaseCheckButton
+	m_ssCheckButton->value(m_smoothshade);//m_antiAliaseInfo
+
+	// set up shadow implementation checkbox
+	m_shCheckButton = new Fl_Check_Button(140, 365, 80, 20, "Shadows");
+	m_shCheckButton->user_data((void*)(this));//m_antiAliaseCheckButton
+	m_shCheckButton->callback(cb_shCheckButton);//cb_antiAliaseCheckButton
+	m_shCheckButton->value(m_shadows);//m_antiAliaseInfo
 
 
 	m_mainWindow->callback(cb_exit2);

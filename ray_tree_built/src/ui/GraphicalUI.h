@@ -123,7 +123,7 @@ private:
 	static void show_picture(const char *old_label, int width_start, int width, int height_start, int height);
 	//static void *show_picture(void *threadarg);
 	static void *PrintHello(void *threadarg);
-	static void *antiAliasing(void *threadarg);
+	static void antiAliasing(int height_start, int height_end);
 
 
 	static void cb_render(Fl_Widget* o, void* v);

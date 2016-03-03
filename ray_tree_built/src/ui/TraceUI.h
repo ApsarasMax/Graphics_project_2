@@ -20,7 +20,7 @@ class TraceUI {
 public:
 	TraceUI() : m_nDepth(0), m_nSize(512), m_displayDebuggingInfo(false),
                     m_shadows(true), m_smoothshade(true), raytracer(0),
-                    m_nFilterWidth(1)//, m_kdtreeInfo(true)//, m_nKdtreeMaxDepth(0) //kdtree
+                    m_nFilterWidth(1) //, m_kdtreeInfo(true)//, m_nKdtreeMaxDepth(0) //kdtree
                     {}
 
 	virtual int	run() = 0;

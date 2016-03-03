@@ -41,8 +41,12 @@ Vec3d Material::shade(Scene *scene, const ray& r, const isect& i) const
     Vec3d shadowAttenuation = pLight->shadowAttenuation(r, r.at(i.t));
     double distanceAttenuation = min(pLight->distanceAttenuation(r.at(i.t)), 1.0);
 
-    Vec3d lightIntensity = pLight->getColor() % shadowAttenuation * distanceAttenuation;
-
+    Vec3d lightIntensity;
+    if(traceUI->shadowSw()){
+      lightIntensity = pLight->getColor() % shadowAttenuation * distanceAttenuation;
+    }else{
+      lightIntensity = pLight->getColor() * distanceAttenuation;
+    }
     part_ds += prod(lightIntensity, (kd(i)*max(N*L, 0.0)+ks(i)*pow(max((-V*R), 0.0), ns)));
 
   }
