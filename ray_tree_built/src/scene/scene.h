@@ -15,8 +15,8 @@
 #include <map>
 #include <string>
 #include <memory>
-#include <stack>//cindy
-#include <assert.h>//cindy
+#include <stack>
+//#include <assert.h>//cindy
 
 #include "ray.h"
 #include "material.h"
@@ -184,7 +184,7 @@ public:
   // The defult does nothing; this is here because it is not required
   // that you implement this function if you create your own scene objects.
   virtual void glDrawLocal(int quality, bool actualMaterials, bool actualTextures) const { }
-  virtual void buildKdTree() {}//cindy//mark
+  virtual void buildKdTree() {}
 
 
   
@@ -227,10 +227,9 @@ protected:
   Material* material;
 };
 
-//cindy
- // template <typename Obj>//cindy
-  //class KdTree;
-  //int times = 0 ;//zyc
+
+//template <typename Obj>
+//class KdTree;
 class KdTree{
     private:
         int currentAxis;
@@ -440,7 +439,7 @@ public:
 
   const BoundingBox& bounds() const { return sceneBounds; }
 
-  void buildKdTree(int depth, int size){//cindy
+  void buildKdTree(int depth, int size){
     giter g;
     for( g = objects.begin(); g != objects.end(); ++g ){
       (*g)->buildKdTree();
@@ -470,7 +469,7 @@ public:
   BoundingBox sceneBounds;
   
   //KdTree<Geometry>* kdtree;
-  KdTree* kdtree;//cindy
+  KdTree* kdtree;
 
 
 

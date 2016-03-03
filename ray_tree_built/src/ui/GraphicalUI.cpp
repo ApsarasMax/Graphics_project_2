@@ -44,7 +44,7 @@ Fl_Slider*	GraphicalUI::m_kdtreeMaxDepthSlider = nullptr;
 Fl_Slider*	GraphicalUI::m_kdtreeLeafSizeSlider = nullptr;
 
 bool GraphicalUI::m_kdtreeInfo = true;
-bool GraphicalUI::m_antiAliaseInfo = true;
+bool GraphicalUI::m_antiAliaseInfo = false;
 int	GraphicalUI::m_nAntiAliasingDegree = 1; //zyc
 Fl_Slider*	GraphicalUI::m_antiAliasingDegreeSlider = nullptr;
 
@@ -241,11 +241,11 @@ void GraphicalUI::cb_cubeMapCheckButton(Fl_Widget* o, void* v)
 {
 	pUI=(GraphicalUI*)(o->user_data());
 	pUI->m_cubeMapInfo = (((Fl_Check_Button*)o)->value() == 1);
-	// if (pUI->m_antiAliaseInfo){
-	// 	pUI->m_antiAliasingDegreeSlider->activate();
-	// }else{
-	// 	pUI->m_antiAliasingDegreeSlider->deactivate();
-	// }
+	if (pUI->m_cubeMapInfo){
+		pUI->m_filterSlider->activate();
+	}else{
+		pUI->m_filterSlider->deactivate();
+	}
 
 }
 
@@ -701,7 +701,7 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_antiAliaseCheckButton->user_data((void*)(this));
 	m_antiAliaseCheckButton->callback(cb_antiAliaseCheckButton);
 	m_antiAliaseCheckButton->value(m_antiAliaseInfo);
-
+	
 	// install anti aliasing degree slider
 	m_antiAliasingDegreeSlider = new Fl_Value_Slider(100, 235, 180, 20, "Anti-Aliasing Degree");
 	m_antiAliasingDegreeSlider->user_data((void*)(this));	// record self to be used by static callback functions
@@ -714,6 +714,7 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	m_antiAliasingDegreeSlider->value(m_nAntiAliasingDegree);//m_nKdtreeLeafSize
 	m_antiAliasingDegreeSlider->align(FL_ALIGN_RIGHT);
 	m_antiAliasingDegreeSlider->callback(cb_antiAliasingDegreeSlides);//cb_kdtreeLeafSlides
+	m_antiAliasingDegreeSlider->deactivate();
 
 	// set up multi thread implementation checkbox
 	m_multiThreadCheckButton = new Fl_Check_Button(10, 275, 80, 20, "xThread");

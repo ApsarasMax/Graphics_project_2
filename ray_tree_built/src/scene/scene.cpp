@@ -76,7 +76,7 @@ bool Scene::intersect(ray& r, isect& i) const {
 			}
 		}
 	}else{
-		have_one = kdtree->intersect(r, i);//cindy
+		have_one = kdtree->intersect(r, i);
 	}
 
 	if(!have_one) i.setT(1000.0);

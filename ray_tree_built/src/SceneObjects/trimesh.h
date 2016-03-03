@@ -36,7 +36,7 @@ public:
 
     bool vertNorms;
 
-    bool kdTreeBuilt=false;//cindy
+    bool kdTreeBuilt=false;
 
     bool intersectLocal(ray& r, isect& i) const;
 
@@ -54,7 +54,7 @@ public:
 
     bool hasBoundingBoxCapability() const { return true; }
 
-    void buildKdTree();//cindy
+    void buildKdTree();
       
     BoundingBox ComputeLocalBoundingBox()
     {
@@ -77,7 +77,7 @@ protected:
 	mutable int displayListWithMaterials;
 	mutable int displayListWithoutMaterials;
 private:
-    KdTree* kdtree;//cindy
+    KdTree* kdtree;
     //KdTree<Geometry>* kdtree;
 };
 

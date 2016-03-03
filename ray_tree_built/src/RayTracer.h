@@ -46,7 +46,7 @@ public:
         int buffer_width, buffer_height;
         int bufferSize;
         Scene* scene;
-        CubeMap* cubeMap;
+        CubeMap* cubeMap = 0;
 
         bool m_bBufferReady;
 };
