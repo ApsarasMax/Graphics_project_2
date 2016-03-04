@@ -16,7 +16,6 @@
 #include <string>
 #include <memory>
 #include <stack>
-//#include <assert.h>//cindy
 
 #include "ray.h"
 #include "material.h"
@@ -30,8 +29,6 @@ using namespace std;
 
 class Light;
 class Scene;
-
-
 
 class SceneElement {
 
@@ -306,7 +303,7 @@ class KdTree{
               }
             }
 
-            //trim tree leaves
+            //trim leaves
             if (countLeft == 0 || countLeft == objects.size()) {//mark
               this->objects = objects;
               return;
@@ -331,7 +328,7 @@ class KdTree{
         double tmin = 0.0;
         double tmax = 0.0;
         // get intersection time
-        if(!bbox.intersect(r, tmin, tmax)){//hasBoundingBoxCapability()
+        if(!bbox.intersect(r, tmin, tmax)){
           return false;
         }
 
@@ -359,7 +356,8 @@ class KdTree{
         // get intersection point
         double min = r.at(tmin)[currentAxis];
         double max = r.at(tmax)[currentAxis];
-        // determine the sequence of visiting nodes
+
+        // traversal
         if (min <= max + RAY_EPSILON && max - RAY_EPSILON <= split) { 
           return left->intersect(r, i); 
         }

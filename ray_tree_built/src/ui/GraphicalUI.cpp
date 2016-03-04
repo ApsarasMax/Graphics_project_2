@@ -7,10 +7,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdarg.h>
-
-//#include <pthread.h>//pthread
 #include <thread>
-#include <mutex>          // std::mutex
 
 #ifndef COMMAND_LINE_ONLY
 
@@ -38,22 +35,21 @@ GraphicalUI* GraphicalUI::pUI = NULL;
 char* GraphicalUI::traceWindowLabel = "Raytraced Image";
 bool TraceUI::m_debug = false;
 
-int	GraphicalUI::m_nKdtreeMaxDepth = 10; //zyc
-int	GraphicalUI::m_nKdtreeLeafSize = 5; //zyc
+int	GraphicalUI::m_nKdtreeMaxDepth = 10; 
+int	GraphicalUI::m_nKdtreeLeafSize = 5; 
 Fl_Slider*	GraphicalUI::m_kdtreeMaxDepthSlider = nullptr;
 Fl_Slider*	GraphicalUI::m_kdtreeLeafSizeSlider = nullptr;
 
 bool GraphicalUI::m_kdtreeInfo = true;
 bool GraphicalUI::m_antiAliaseInfo = false;
-int	GraphicalUI::m_nAntiAliasingDegree = 1; //zyc
+int	GraphicalUI::m_nAntiAliasingDegree = 1; 
 Fl_Slider*	GraphicalUI::m_antiAliasingDegreeSlider = nullptr;
 
 bool GraphicalUI::m_cubeMapInfo = false;
 bool GraphicalUI::m_multiThreadInfo = false;
 Fl_Slider*	GraphicalUI::m_multiThreadSlider = nullptr;
-int	GraphicalUI::m_nMultiThread = 1; //zyc
+int	GraphicalUI::m_nMultiThread = 1; 
 
-//Fl_Slider*	GraphicalUI::m_filterSlider = nullptr;
 
 
 //------------------------------------- Help Functions --------------------------------------------
@@ -268,29 +264,8 @@ void GraphicalUI::cb_shCheckButton(Fl_Widget* o, void* v)
 	pUI->m_shadows = (((Fl_Check_Button*)o)->value() == 1);
 }
 
-
-// //working on
-// struct thread_data{
-// 	int height_start;
-// 	int height_end;
-// };
-
-//void* GraphicalUI::show_picture(const char *old_label, int width_start, int width, int height_start, int height){
-// void* GraphicalUI::show_picture(void *threadarg){
-// 		struct thread_data *my_data;
-
-// 	    my_data = (struct thread_data *) threadarg;
-
-// 	    cout << "width_start : " << my_data->width_start<<endl;
-// 	   cout << "width : " << my_data->width<<endl;
-// 	   cout << "height_start : " << my_data->height_start<<endl;
-// 	   cout << "height : " << my_data->height<<endl;
-
-// 		    const char *old_label = my_data->old_label;
-// 		    int width_start = my_data->width_start;
-// 		    int width = my_data->width;
-// 		    int height_start = my_data->height_start;
-// 		    int height = my_data->height;
+// void GraphicalUI::show_picture(const char *old_label, int width_start, int width, int height_start, int height){
+// //void* GraphicalUI::show_picture(void *threadarg){
 
 // 			char buffer[256];
 
@@ -319,50 +294,9 @@ void GraphicalUI::cb_shCheckButton(Fl_Widget* o, void* v)
 // 			       }
 // 			     if (stopTrace) break;
 // 			   }
-// 			  pthread_exit(NULL);
 // }
 
-void GraphicalUI::show_picture(const char *old_label, int width_start, int width, int height_start, int height){
-//void* GraphicalUI::show_picture(void *threadarg){
-
-			char buffer[256];
-
-			clock_t now, prev;
-			now = prev = clock();
-			clock_t intervalMS = pUI->refreshInterval * 100;
-			 for (int y = height_start; y < height; y++)
-			   {
-			     for (int x = width_start; x < width; x++)
-			       {
-			 	if (stopTrace) break;
-			 	// check for input and refresh view every so often while tracing
-				 now = clock();
-				if ((now - prev)/CLOCKS_PER_SEC * 1000 >= intervalMS)
-				  {
-				     prev = now;
-				    sprintf(buffer, "(%d%%) %s", (int)((double)y / (double)height * 100.0), old_label);
-				    pUI->m_traceGlWindow->label(buffer);
-				    pUI->m_traceGlWindow->refresh();
-				    Fl::check();
-				    if (Fl::damage()) { Fl::flush(); }
-			 	  }
-				//look for input and refresh window
-				pUI->raytracer->tracePixel(x, y);
-				pUI->m_debuggingWindow->m_debuggingView->setDirty();
-			       }
-			     if (stopTrace) break;
-			   }
-}
-
 void GraphicalUI::antiAliasing(int height_start, int height_end){
-
-// std::mutex mtx;           // mutex for critical section
-//   mtx.lock();
-// {
-	// struct thread_data *my_data;
-	// my_data = (struct thread_data *) threadarg;
-	// int height_start = my_data->height_start;
-	// int height_end = my_data->height_end;
 
 	cout<<height_start<<endl;
 	cout<<height_end<<endl;
@@ -393,15 +327,13 @@ void GraphicalUI::antiAliasing(int height_start, int height_end){
 
 			col /= (degree*degree);
 			unsigned char *pixel = buf + ( i + j * width ) * 3;
-			//cout<<"hi\n";
+
 			pixel[0] = (int)( 255.0 * min(col[0], 1.0));
 			pixel[1] = (int)( 255.0 * min(col[1], 1.0));
 			pixel[2] = (int)( 255.0 * min(col[2], 1.0));
 		}
 	}
-//}	
-	  //mtx.unlock();
-	//pthread_exit(NULL);
+
 }
 
 void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
@@ -459,17 +391,12 @@ void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
 
 		if(m_antiAliaseInfo){
 
-			if(m_multiThreadInfo){//m_multiThreadInfo
+			if(m_multiThreadInfo){
 				 unsigned char *buf;
 				 int width, height;
 				 pUI->getRayTracer()->getBuffer(buf, width, height);
 				
-				//thread
 				std::thread t[NUM_THREADS];
-		        //pthread_t threads[NUM_THREADS];
-				//struct thread_data td[NUM_THREADS];
-				// int rc;
-				//int thread_num;
 
 				for (int thread_num = 0; thread_num < NUM_THREADS; ++thread_num) {
 					int height_start = (thread_num/(double)NUM_THREADS)*height;
@@ -482,67 +409,45 @@ void GraphicalUI::cb_render(Fl_Widget* o, void* v) {
  
 	       		std::cout << "Launched from the main\n";
 	 
-	         //Join the threads with the main thread
+
 		        for (int i = 0; i < NUM_THREADS; ++i) {
 		            t[i].join();
 		        }
 
-				// for( thread_num=0; thread_num < NUM_THREADS; thread_num++ ){
-				//    cout <<"main() : creating thread, " << thread_num << endl;
-
-				//    // td[i].thread_id = i;
-				//    // td[i].message = "This is message";
-
-				// 	td[thread_num].height_start = (thread_num/(double)NUM_THREADS)*height;
-				// 	td[thread_num].height_end = ((thread_num+1)/(double)NUM_THREADS)*height;
-				// 	//cout<<td[i].height<<endl;
-				// 	cout<<thread_num<<":"<<td[thread_num].height_start<<endl;
-				// 	cout<<thread_num<<":"<<td[thread_num].height_end<<endl;
-
-
-				//    rc = pthread_create(&threads[thread_num], NULL, antiAliasing, (void *)&td[thread_num]);
-				//    if (rc){
-				//       cout << "Error:unable to create thread," << rc << endl;
-				//       exit(-1);
-				//    }
-				// }
-
 			}else{
 
-	unsigned char *buf;
-	int width, height;
-	pUI->getRayTracer()->getBuffer(buf, width, height);
-	
-	double degree = pUI->m_nAntiAliasingDegree;
+				unsigned char *buf;
+				int width, height;
+				pUI->getRayTracer()->getBuffer(buf, width, height);
+				
+				double degree = pUI->m_nAntiAliasingDegree;
 
 
-	for( int j = 0; j < height; ++j ){
-		for( int i = 0; i < width; ++i ){
-			Vec3d col = Vec3d(0, 0, 0);
-			if (stopTrace) break;
-			double x = double(i)/double(width);
-			double y = double(j)/double(height);
-			double deltaW = 1.0 / (double) width / degree;
-	 		double deltaH = 1.0 / (double) height / degree; 
-	 		// double deltaW = 1.0 / (double)degree;
-	 		// double deltaH = 1.0 / (double)degree; 
-			for (int i1 = 0; i1 < degree; i1 ++){
-				for (int ji = 0; ji < degree; ji ++){
-					col += pUI->getRayTracer()->trace(x + deltaW * i1, y + deltaH * ji);
+				for( int j = 0; j < height; ++j ){
+					for( int i = 0; i < width; ++i ){
+						Vec3d col = Vec3d(0, 0, 0);
+						if (stopTrace) break;
+						double x = double(i)/double(width);
+						double y = double(j)/double(height);
+						double deltaW = 1.0 / (double) width / degree;
+				 		double deltaH = 1.0 / (double) height / degree; 
+				 		// double deltaW = 1.0 / (double)degree;
+				 		// double deltaH = 1.0 / (double)degree; 
+						for (int i1 = 0; i1 < degree; i1 ++){
+							for (int ji = 0; ji < degree; ji ++){
+								col += pUI->getRayTracer()->trace(x + deltaW * i1, y + deltaH * ji);
+							}
+						}
+
+						col /= (degree*degree);
+						unsigned char *pixel = buf + ( i + j * width ) * 3;
+						pixel[0] = (int)( 255.0 * min(col[0], 1.0));
+						pixel[1] = (int)( 255.0 * min(col[1], 1.0));
+						pixel[2] = (int)( 255.0 * min(col[2], 1.0));
+					}
 				}
-			}
-
-			col /= (degree*degree);
-			unsigned char *pixel = buf + ( i + j * width ) * 3;
-			//cout<<"hi\n";
-			pixel[0] = (int)( 255.0 * min(col[0], 1.0));
-			pixel[1] = (int)( 255.0 * min(col[1], 1.0));
-			pixel[2] = (int)( 255.0 * min(col[2], 1.0));
-		}
-	}
 
 			}
-			//pthread_exit(NULL);
 
 	
 
@@ -705,27 +610,27 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 	// install anti aliasing degree slider
 	m_antiAliasingDegreeSlider = new Fl_Value_Slider(100, 235, 180, 20, "Anti-Aliasing Degree");
 	m_antiAliasingDegreeSlider->user_data((void*)(this));	// record self to be used by static callback functions
-	m_antiAliasingDegreeSlider->type(FL_HOR_NICE_SLIDER);//m_kdtreeLeafSizeSlider
+	m_antiAliasingDegreeSlider->type(FL_HOR_NICE_SLIDER);
 	m_antiAliasingDegreeSlider->labelfont(FL_COURIER);
 	m_antiAliasingDegreeSlider->labelsize(12);
 	m_antiAliasingDegreeSlider->minimum(1);
 	m_antiAliasingDegreeSlider->maximum(4);
 	m_antiAliasingDegreeSlider->step(1);
-	m_antiAliasingDegreeSlider->value(m_nAntiAliasingDegree);//m_nKdtreeLeafSize
+	m_antiAliasingDegreeSlider->value(m_nAntiAliasingDegree);
 	m_antiAliasingDegreeSlider->align(FL_ALIGN_RIGHT);
-	m_antiAliasingDegreeSlider->callback(cb_antiAliasingDegreeSlides);//cb_kdtreeLeafSlides
+	m_antiAliasingDegreeSlider->callback(cb_antiAliasingDegreeSlides);
 	m_antiAliasingDegreeSlider->deactivate();
 
 	// set up multi thread implementation checkbox
 	m_multiThreadCheckButton = new Fl_Check_Button(10, 275, 80, 20, "xThread");
-	m_multiThreadCheckButton->user_data((void*)(this));//m_cubeMapCheckButton
-	m_multiThreadCheckButton->callback(cb_multiThreadCheckButton);//cb_cubeMapCheckButton
-	m_multiThreadCheckButton->value(m_multiThreadInfo);//m_cubeMapInfo
+	m_multiThreadCheckButton->user_data((void*)(this));
+	m_multiThreadCheckButton->callback(cb_multiThreadCheckButton);
+	m_multiThreadCheckButton->value(m_multiThreadInfo);
 
 	// install multi threads slider
 	m_multiThreadSlider = new Fl_Value_Slider(100, 275, 180, 20, "Threads");
 	m_multiThreadSlider->user_data((void*)(this));	// record self to be used by static callback functions
-	m_multiThreadSlider->type(FL_HOR_NICE_SLIDER);//m_refreshSlider
+	m_multiThreadSlider->type(FL_HOR_NICE_SLIDER);
 	m_multiThreadSlider->labelfont(FL_COURIER);
 	m_multiThreadSlider->labelsize(12);
 	m_multiThreadSlider->minimum(1);
@@ -738,14 +643,14 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 
 	// set up cube map implementation checkbox
 	m_cubeMapCheckButton = new Fl_Check_Button(10, 315, 80, 20, "CubeMap");
-	m_cubeMapCheckButton->user_data((void*)(this));//m_antiAliaseCheckButton
-	m_cubeMapCheckButton->callback(cb_cubeMapCheckButton);//cb_antiAliaseCheckButton
-	m_cubeMapCheckButton->value(m_cubeMapInfo);//m_antiAliaseInfo
+	m_cubeMapCheckButton->user_data((void*)(this));
+	m_cubeMapCheckButton->callback(cb_cubeMapCheckButton);
+	m_cubeMapCheckButton->value(m_cubeMapInfo);
 
 	// install cubmap filter slider
 	m_filterSlider = new Fl_Value_Slider(100, 315, 180, 20, "Filter Width");
 	m_filterSlider->user_data((void*)(this));	// record self to be used by static callback functions
-	m_filterSlider->type(FL_HOR_NICE_SLIDER);//m_refreshSlider
+	m_filterSlider->type(FL_HOR_NICE_SLIDER);
 	m_filterSlider->labelfont(FL_COURIER);
 	m_filterSlider->labelsize(12);
 	m_filterSlider->minimum(1);
@@ -758,15 +663,15 @@ GraphicalUI::GraphicalUI() : refreshInterval(10) {
 
 	// set up smooth shade implementation checkbox
 	m_ssCheckButton = new Fl_Check_Button(10, 365, 80, 20, "SmoothShade");
-	m_ssCheckButton->user_data((void*)(this));//m_antiAliaseCheckButton
-	m_ssCheckButton->callback(cb_ssCheckButton);//cb_antiAliaseCheckButton
-	m_ssCheckButton->value(m_smoothshade);//m_antiAliaseInfo
+	m_ssCheckButton->user_data((void*)(this));
+	m_ssCheckButton->callback(cb_ssCheckButton);
+	m_ssCheckButton->value(m_smoothshade);
 
 	// set up shadow implementation checkbox
 	m_shCheckButton = new Fl_Check_Button(140, 365, 80, 20, "Shadows");
-	m_shCheckButton->user_data((void*)(this));//m_antiAliaseCheckButton
-	m_shCheckButton->callback(cb_shCheckButton);//cb_antiAliaseCheckButton
-	m_shCheckButton->value(m_shadows);//m_antiAliaseInfo
+	m_shCheckButton->user_data((void*)(this));
+	m_shCheckButton->callback(cb_shCheckButton);
+	m_shCheckButton->value(m_shadows);
 
 
 	m_mainWindow->callback(cb_exit2);

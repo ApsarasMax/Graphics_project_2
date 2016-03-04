@@ -41,8 +41,6 @@ public:
 	bool	shadowSw() const { return m_shadows; }
 	bool	smShadSw() const { return m_smoothshade; }
 
-	//kdtree
-	//int	getkdtreeMaxDepth() const { return m_nKdtreeMaxDepth; }
 
 	static bool m_debug;
 

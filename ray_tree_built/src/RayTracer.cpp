@@ -10,13 +10,12 @@
 #include "parser/Tokenizer.h"
 #include "parser/Parser.h"
 
-//#include "ui/TraceUI.h"
-#include "ui/GraphicalUI.h"//zyc
+#include "ui/GraphicalUI.h"
 #include <cmath>
 #include <algorithm>
 
 extern TraceUI* traceUI;
-extern GraphicalUI* graphicalUI;//zyc
+extern GraphicalUI* graphicalUI;
 
 #include <iostream>
 #include <fstream>
@@ -94,14 +93,13 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 	    Vec3d L = -r.d; //opposite of ray direction
 	    L.normalize();
 
-	    //if(!(m.kr(i)[0]==0 && m.kr(i)[1]==0 && m.kr(i)[2]==0)){
 	    Vec3d dirReflect = 2*max((L*N), 0.0)*N-L;
 	    dirReflect.normalize();
 
 	    ray reflect(r.at(i.t), dirReflect, ray :: REFLECTION);
 
 	    colorC += m.kr(i) % traceRay(reflect, depth-1);
-		//}
+
 
 		//refraction
 		double yita_i=1.0;// = m.index(i); //object = i
@@ -143,7 +141,7 @@ Vec3d RayTracer::traceRay(ray& r, int depth)
 		// is just black.
 		if (haveCubeMap()) {
 			CubeMap *cm = getCubeMap();
-			colorC = cm->getColor(r);//max
+			colorC = cm->getColor(r);
 		}else{
 			colorC = Vec3d(0.0, 0.0, 0.0);
 		}

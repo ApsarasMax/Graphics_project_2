@@ -93,10 +93,7 @@ public:
     TrimeshFace( Scene *scene, Material *mat, Trimesh *parent, int a, int b, int c)
         : MaterialSceneObject( scene, mat )
     {
-
-        this->transform = parent->transform->createChild(parent->transform->transform());//zyc
-
-        this->parent = parent;
+         this->parent = parent;
         ids[0] = a;
         ids[1] = b;
         ids[2] = c;
@@ -134,7 +131,7 @@ public:
 		return normal;
 	}
 
-    //bool intersect(ray& r, isect& i ) const;//zyc
+    bool intersect(ray& r, isect& i ) const;
     bool intersectLocal(ray& r, isect& i ) const;
 
     bool hasBoundingBoxCapability() const { return true; }
@@ -150,7 +147,7 @@ public:
         return localbounds;
     }
 
-    //const BoundingBox& getBoundingBox() const { return localbounds; }//zyc
+    const BoundingBox& getBoundingBox() const { return localbounds; }
 
  };
 

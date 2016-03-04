@@ -3,7 +3,7 @@
 #include "scene.h"
 #include "light.h"
 #include "../ui/TraceUI.h"
-#include "../ui/GraphicalUI.h"//zyc
+#include "../ui/GraphicalUI.h"
 
 extern GraphicalUI* graphicalUI;
 

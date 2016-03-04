@@ -4,10 +4,10 @@
 #include <assert.h>
 #include "trimesh.h"
 #include "../ui/TraceUI.h"
-#include "../ui/GraphicalUI.h"//zyc
+#include "../ui/GraphicalUI.h"
 
 extern TraceUI* traceUI;
-extern GraphicalUI* graphicalUI;//zyv
+extern GraphicalUI* graphicalUI;
 
 using namespace std;
 
@@ -88,10 +88,6 @@ bool Trimesh::intersectLocal(ray& r, isect& i) const
 	if( !have_one ) i.setT(1000.0);
 	return have_one;
 }
-
-// bool TrimeshFace::intersect(ray& r, isect& i) const {//zyc
-//   return intersectLocal(r, i);
-// }
 
 // Intersect ray r with the triangle abc.  If it hits returns true,
 // and put the parameter in t and the barycentric coordinates of the

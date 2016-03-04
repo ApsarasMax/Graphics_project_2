@@ -67,7 +67,7 @@ public:
 
 	//kdtree
 	Fl_Check_Button*	m_kdtreeCheckButton;
-	static int	m_nKdtreeMaxDepth; //zyc
+	static int	m_nKdtreeMaxDepth; 
 	static int	m_nKdtreeLeafSize;
 	static Fl_Slider*			m_kdtreeMaxDepthSlider;
 	static Fl_Slider*			m_kdtreeLeafSizeSlider;
@@ -86,7 +86,7 @@ public:
 	Fl_Check_Button*	m_multiThreadCheckButton;
 	static bool m_multiThreadInfo;
 	static Fl_Slider*			m_multiThreadSlider;
-	static int	m_nMultiThread; //zyc
+	static int	m_nMultiThread; 
 	
 
 	// member functions
@@ -120,9 +120,6 @@ private:
 	static void cb_depthSlides(Fl_Widget* o, void* v);
 	static void cb_refreshSlides(Fl_Widget* o, void* v);
 
-	static void show_picture(const char *old_label, int width_start, int width, int height_start, int height);
-	//static void *show_picture(void *threadarg);
-	static void *PrintHello(void *threadarg);
 	static void antiAliasing(int height_start, int height_end);
 
 
